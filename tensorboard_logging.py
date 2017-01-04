@@ -1,7 +1,7 @@
 """Simple example on how to log scalars and images to tensorboard without tensor ops."""
 __author__ = "Michael Gygli"
 
-import tensorboard as tf
+import tensorflow as tf
 from StringIO import StringIO
 import matplotlib.pyplot as plt
 
