@@ -4,7 +4,7 @@ __author__ = "Michael Gygli"
 import tensorflow as tf
 from StringIO import StringIO
 import matplotlib.pyplot as plt
-
+import numpy as np
 
 class Logger(object):
     """Logging in tensorboard without tensorflow ops."""
@@ -48,3 +48,31 @@ class Logger(object):
         # Create and write Summary
         summary = tf.Summary(value=im_summaries)
         self.writer.add_summary(summary, step)
+        
+    def log_histogram(self, tag, values, step, bins=1000):
+        """Logs the histogram of a list/vector of values."""
+
+        # Create histogram using numpy
+        counts, bin_edges = np.histogram(values, bins=bins)
+
+        # Fill fields of histogram proto
+        hist = tf.HistogramProto()
+        hist.min = np.min(values)
+        hist.max = np.max(values)
+        hist.num = np.prod(values.shape)
+        hist.sum = np.sum(values)
+        hist.sum_squares = np.sum(values**2)
+
+        # Requires equal number of bins, where the first goes from -DBL_MAX to bin_edges[1]
+        # See https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/framework/summary.proto#L30
+        bin_edges = bin_edges[1:]
+
+        for edge in bin_edges:
+            hist.bucket_limit.append(edge)
+        for c in counts:
+            hist.bucket.append(c)
+            
+        # Create and write Summary
+        summary = tf.Summary(value=[tf.Summary.Value(tag=tag, histo=hist)])
+        self.writer.add_summary(summary, step)
+        self.writer.flush()        
