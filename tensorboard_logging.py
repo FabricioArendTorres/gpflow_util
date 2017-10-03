@@ -1,4 +1,7 @@
-"""Simple example on how to log scalars and images to tensorboard without tensor ops."""
+"""Simple example on how to log scalars and images to tensorboard without tensor ops.
+
+License: Copyleft
+"""
 __author__ = "Michael Gygli"
 
 import tensorflow as tf
@@ -52,8 +55,10 @@ class Logger(object):
 
     def log_histogram(self, tag, values, step, bins=1000):
         """Logs the histogram of a list/vector of values."""
-
-        # Create histogram using numpy
+        # Convert to a numpy array
+        values = np.array(values)
+        
+        # Create histogram using numpy        
         counts, bin_edges = np.histogram(values, bins=bins)
 
         # Fill fields of histogram proto
