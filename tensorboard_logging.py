@@ -1,22 +1,51 @@
 """Simple example on how to log scalars and images to tensorboard without tensor ops.
 
+Extended to be used as for gpflow.
+
 License: Copyleft
 """
-__author__ = "Michael Gygli"
+__author__ = ["Michael Gygli", "Fabricio Arend Torres"]
 
 import tensorflow as tf
 import io
 import matplotlib.pyplot as plt
 import numpy as np
+import gpflow.actions
+from abc import ABC, abstractmethod
 
 
-class Logger:
+class Logger(gpflow.actions.Action, ABC):
     """Logging in tensorboard without tensorflow ops.
     Expanded for gpflow."""
 
-    def __init__(self, log_dir):
-        """Creates a summary writer logging to log_dir."""
+    def __init__(self, model, log_dir, session, it_step=10, **kwargs):
+        """
+        Creates a summary writer logging to log_dir.
+
+        :param model:
+        :param log_dir:
+        :param session:
+        :param it_step:
+        """
+
         self.writer = tf.summary.FileWriter(log_dir)
+        self.model = model
+        self.it_step = it_step
+        self.session = session
+        self.__dict__.update(kwargs)
+
+    def run(self, ctx):
+        if (ctx.iteration % self.it_step) == 0:
+            self._run(ctx)
+
+    @abstractmethod
+    def _run(self, ctx):
+        """
+        Overwrite this method for deciding what should be logged.
+        :param ctx:
+        :return:
+        """
+        raise NotImplementedError
 
     def log_scalar(self, tag, value, step):
         """Log a scalar variable.
